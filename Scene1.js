@@ -8,10 +8,17 @@ class Scene1 extends Phaser.Scene {
   preload() {
     this.isGameEnded = false;
     this.monsterCount = 0;
+    this.load.image('kittyTabrak', 'assets/images/kittyTabrak.png');
+    this.load.audio('bgsound', 'assets/sound/bgSound.mp3');
+    this.load.audio('gameover', 'assets/sound/gameOver.mp3');
+    this.load.audio('win', 'assets/sound/win.mp3');
   }
   create() {
     this.background = this.add.image(0, 0, 'background').setDisplaySize(1290, 600);
     this.background.setOrigin(0, 0);
+
+    this.bgsound = this.sound.add('bgsound', { loop: true });
+    this.bgsound.play();
 
     this.kitty = this.add.image(50, 500, 'kitty').setDisplaySize(100, 100);
 
@@ -82,11 +89,12 @@ class Scene1 extends Phaser.Scene {
   update() {
     if (!this.isGameEnded) {
       this.physics.overlap(this.balls, this.monsters, this.hitMonster, null, this);
+      this.physics.overlap(this.kitty, this.monsters, this.checkTabrakan, null, this);
       this.moveMonsters(-1);
     }
 
-    this.kitty.body.velocity.x = 0; // Reset velocity
     if (!this.isGameEnded) {
+      this.kitty.body.velocity.x = 0; // Reset velocity
       if (this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D).isDown || this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT).isDown) {
         this.kitty.body.velocity.x = 100; // Move right
         this.turnKittyRight();
@@ -212,9 +220,44 @@ class Scene1 extends Phaser.Scene {
     }
   }
 
+  checkTabrakan(kitty, monster) {
+    this.isGameEnded = true;
+
+    this.bgsound.stop();
+    this.gameover = this.sound.add('gameover');
+    this.gameover.play();
+
+    this.kitty.destroy();
+
+    this.monsters.children.iterate((monster) => {
+      monster.anims.stop();
+    });
+
+    // Menggelapkan latar belakang
+    this.dimBackground = this.add.graphics();
+    this.dimBackground.fillStyle(0x000000, 0.7);
+    this.dimBackground.fillRect(0, 0, this.sys.game.config.width, this.sys.game.config.height);
+    this.dimBackground.setDepth(1); // Set depth latar belakang agar di bawah elemen-elemen lain
+
+    // Mengganti teks menjadi "Game Over"
+    this.winText.setText('Game Over');
+    this.winText.setDepth(2);
+
+    // Menambahkan gambar kittyTabrak di posisi tabrakan
+    const kittyTabrak = this.add.image(kitty.x, kitty.y, 'kittyTabrak').setDisplaySize(100, 100);
+
+    this.playAgainButton.visible = true;
+    this.playAgainButton.setDepth(2);
+
+    this.exitButton.visible = true;
+    this.exitButton.setDepth(2);
+  }
   endGame() {
     this.isGameEnded = true;
 
+    this.bgsound.stop();
+    this.win = this.sound.add('win');
+    this.win.play();
     this.monsters.children.iterate((monster) => {
       monster.anims.stop();
     });

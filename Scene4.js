@@ -1,22 +1,41 @@
-class Scene2 extends Phaser.Scene {
+class Scene4 extends Phaser.Scene {
   constructor() {
-    super('level2');
+    super('level4');
     this.monsterCount = 0; // Jumlah monster yang sudah dibunuh
     this.isGameEnded = false; // Apakah permainan sudah berakhir
+    this.coinCount = 0;
+    this.timer = 15000; // Timer awal dalam detik
+    this.timerLabel = null; // Label untuk menampilkan timer
   }
 
   preload() {
     this.load.image('table', 'assets/images/meja.png');
+    this.load.image('coin', 'assets/images/MejaKoin.png');
     this.load.image('kittyTabrak', 'assets/images/kittyTabrak.png');
     this.load.audio('bgsound', 'assets/sound/bgSound.mp3');
     this.load.audio('win', 'assets/sound/win.mp3');
     this.load.audio('gameover', 'assets/sound/gameOver.mp3');
+    this.load.audio('getCoin', 'assets/sound/coin.mp3');
   }
   create() {
     this.isGameEnded = false;
     this.monsterCount = 0;
+    this.coinCount = 0;
     this.background = this.add.image(0, 0, 'background').setDisplaySize(1290, 600);
     this.background.setOrigin(0, 0);
+
+    this.timerEvent = this.time.addEvent({
+      delay: 1000, // Setiap 1 detik
+      callback: this.updateTimer,
+      callbackScope: this,
+      loop: true,
+    });
+
+    // Menampilkan label timer
+    this.timerLabel = this.add.text(600, 20, 'Time: ' + this.timer, {
+      fill: 'white',
+      fontSize: '20px',
+    });
 
     this.bgsound = this.sound.add('bgsound', { loop: true });
     this.bgsound.play();
@@ -39,11 +58,18 @@ class Scene2 extends Phaser.Scene {
     this.tables = this.physics.add.group();
     this.spawnTable();
 
+    this.coins = this.physics.add.group();
+    this.spawnCoin();
+
     this.scoreText = this.add.text(20, 20, 'Monsters Killed: 0', {
       fill: 'white',
       fontSize: '20px',
     });
-    this.level = this.add.text(20, this.scoreText.y + this.scoreText.height + 10, 'Level 2', {
+    this.level = this.add.text(20, this.scoreText.y + this.scoreText.height + 10, 'Level 4', {
+      fill: 'white',
+      fontSize: '20px',
+    });
+    this.coinText = this.add.text(20, this.level.y + this.level.height + 10, 'Coins: 0', {
       fill: 'white',
       fontSize: '20px',
     });
@@ -64,12 +90,13 @@ class Scene2 extends Phaser.Scene {
     // Menambahkan aksi klik pada tombol-tombol
     this.nextButton.setInteractive().on('pointerdown', () => {
       // Tambahkan logika untuk lanjut ke level berikutnya
-      this.scene.start('level3');
+      this.scene.start('level5');
     });
     this.playAgainButton.setInteractive().on('pointerdown', () => {
       this.scene.restart(); // Memulai ulang permainan
       this.isGameEnded = false;
       this.monsterCount = 0;
+      this.coinCount = 0;
     });
 
     this.exitButton.setInteractive().on('pointerdown', () => {
@@ -97,9 +124,23 @@ class Scene2 extends Phaser.Scene {
   // }
   update() {
     if (!this.isGameEnded) {
+      this.timer--; // Mengurangi waktu
+
+      if (this.timer == 0) {
+        // Waktu habis, panggil fungsi game over
+        this.gameOver();
+      } else {
+        // Update label timer
+        this.timerLabel.setText('Time: ' + this.timer);
+      }
+    }
+
+    if (!this.isGameEnded) {
+      this.physics.overlap(this.kitty, this.coins, this.hitCoin, null, this);
       this.physics.overlap(this.kitty, this.tables, this.hitTable, null, this); // Cek tabrakan dengan meja
-      this.physics.overlap(this.kitty, this.monsters, this.checkTabrakan, null, this);
       this.physics.overlap(this.balls, this.monsters, this.hitMonster, null, this);
+      this.physics.overlap(this.kitty, this.monsters, this.checkTabrakan, null, this);
+
       this.moveMonsters(-1);
     }
 
@@ -153,6 +194,39 @@ class Scene2 extends Phaser.Scene {
     }
   }
 
+  checkTabrakan(kitty, monster) {
+    this.isGameEnded = true;
+
+    this.bgsound.stop();
+    this.gameover = this.sound.add('gameover');
+    this.gameover.play();
+
+    this.kitty.destroy();
+
+    this.monsters.children.iterate((monster) => {
+      monster.anims.stop();
+    });
+
+    // Menggelapkan latar belakang
+    this.dimBackground = this.add.graphics();
+    this.dimBackground.fillStyle(0x000000, 0.7);
+    this.dimBackground.fillRect(0, 0, this.sys.game.config.width, this.sys.game.config.height);
+    this.dimBackground.setDepth(1); // Set depth latar belakang agar di bawah elemen-elemen lain
+
+    // Mengganti teks menjadi "Game Over"
+    this.winText.setText('Game Over');
+    this.winText.setDepth(2);
+
+    // Menambahkan gambar kittyTabrak di posisi tabrakan
+    const kittyTabrak = this.add.image(kitty.x, kitty.y, 'kittyTabrak').setDisplaySize(100, 100);
+
+    this.playAgainButton.visible = true;
+    this.playAgainButton.setDepth(2);
+
+    this.exitButton.visible = true;
+    this.exitButton.setDepth(2);
+  }
+
   kittyAttack() {
     if (!this.isGameEnded && !this.kitty.attack) {
       this.kitty.attack = true;
@@ -183,6 +257,19 @@ class Scene2 extends Phaser.Scene {
       this.time.delayedCall(2000, this.spawnTable, [], this);
       table.setVelocityY(200); // Kecepatan jatuh meja
       table.setGravityY(300); // Gravitasi untuk efek jatuh
+    }
+  }
+
+  spawnCoin() {
+    if (!this.isGameEnded) {
+      const randomX = Phaser.Math.Between(50, this.sys.game.config.width - 50);
+      const coin = this.coins.create(randomX, 0, 'coin').setDisplaySize(50, 50);
+      this.physics.world.enable(coin);
+      this.coins.add(coin);
+
+      this.time.delayedCall(2000, this.spawnCoin, [], this);
+      coin.setVelocityY(300); // Kecepatan jatuh meja
+      coin.setGravityY(300); // Gravitasi untuk efek jatuh
     }
   }
 
@@ -220,39 +307,6 @@ class Scene2 extends Phaser.Scene {
     });
   }
 
-  checkTabrakan(kitty, monster) {
-    this.isGameEnded = true;
-
-    this.bgsound.stop();
-    this.gameover = this.sound.add('gameover');
-    this.gameover.play();
-
-    this.kitty.destroy();
-
-    this.monsters.children.iterate((monster) => {
-      monster.anims.stop();
-    });
-
-    // Menggelapkan latar belakang
-    this.dimBackground = this.add.graphics();
-    this.dimBackground.fillStyle(0x000000, 0.7);
-    this.dimBackground.fillRect(0, 0, this.sys.game.config.width, this.sys.game.config.height);
-    this.dimBackground.setDepth(1); // Set depth latar belakang agar di bawah elemen-elemen lain
-
-    // Mengganti teks menjadi "Game Over"
-    this.winText.setText('Game Over');
-    this.winText.setDepth(2);
-
-    // Menambahkan gambar kittyTabrak di posisi tabrakan
-    const kittyTabrak = this.add.image(kitty.x, kitty.y, 'kittyTabrak').setDisplaySize(100, 100);
-
-    this.playAgainButton.visible = true;
-    this.playAgainButton.setDepth(2);
-
-    this.exitButton.visible = true;
-    this.exitButton.setDepth(2);
-  }
-
   hitMonster(ball, monster) {
     ball.destroy();
     this.monsterDead = this.add.sprite(monster.x, monster.y, 'monsterDead').setDisplaySize(100, 100);
@@ -272,10 +326,18 @@ class Scene2 extends Phaser.Scene {
     });
     this.monsterCount++;
     this.scoreText.setText('Monsters Killed: ' + this.monsterCount);
-    if (this.monsterCount >= 3 && !this.isGameEnded) {
+    if (this.monsterCount >= 15 && !this.isGameEnded) {
       this.endGame();
       this.bgsound.stop();
     }
+  }
+
+  hitCoin(kitty, coin) {
+    this.getCoin = this.sound.add('getCoin');
+    this.getCoin.play();
+    coin.destroy();
+    this.coinCount++;
+    this.coinText.setText('Coins: ' + this.coinCount);
   }
 
   hitTable(kitty, table) {
@@ -311,9 +373,39 @@ class Scene2 extends Phaser.Scene {
     this.exitButton.setDepth(2);
   }
 
+  gameOver() {
+    this.isGameEnded = true;
+
+    this.bgsound.stop();
+    this.gameover = this.sound.add('gameover');
+    this.gameover.play();
+
+    this.kitty.destroy();
+
+    this.monsters.children.iterate((monster) => {
+      monster.anims.stop();
+    });
+
+    // Menggelapkan latar belakang
+    this.dimBackground = this.add.graphics();
+    this.dimBackground.fillStyle(0x000000, 0.7);
+    this.dimBackground.fillRect(0, 0, this.sys.game.config.width, this.sys.game.config.height);
+    this.dimBackground.setDepth(1);
+
+    this.winText.setText("Time's Up! Game Over");
+    this.winText.setDepth(2);
+
+    this.playAgainButton.visible = true;
+    this.playAgainButton.setDepth(2);
+
+    this.exitButton.visible = true;
+    this.exitButton.setDepth(2);
+  }
+
   endGame() {
     this.isGameEnded = true;
     this.kitty.body.velocity.x = 0; // Reset velocity
+    this.timerEvent.destroy();
 
     this.win = this.sound.add('win');
     this.win.play();
@@ -328,7 +420,7 @@ class Scene2 extends Phaser.Scene {
     this.dimBackground.fillRect(0, 0, this.sys.game.config.width, this.sys.game.config.height);
     this.dimBackground.setDepth(1); // Set depth latar belakang agar di bawah elemen-elemen lain
 
-    this.winText.setText('You Win Level 2');
+    this.winText.setText('You Win Level 4');
     this.winText.setDepth(2);
 
     this.nextButton.visible = true;

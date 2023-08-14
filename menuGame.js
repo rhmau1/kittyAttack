@@ -102,7 +102,7 @@ class menuGame extends Phaser.Scene {
       .setOrigin(0.5);
 
     level1Button.setInteractive().on('pointerdown', () => {
-      this.scene.start('level1Instructions');
+      this.scene.start('level1');
     });
 
     level2Button.setInteractive().on('pointerdown', () => {

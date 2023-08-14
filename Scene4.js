@@ -61,15 +61,15 @@ class Scene4 extends Phaser.Scene {
     this.coins = this.physics.add.group();
     this.spawnCoin();
 
-    this.scoreText = this.add.text(20, 20, 'Monsters Killed: 0', {
+    this.scoreText = this.add.text(20, 20, 'Monsters Killed: 0 / 15', {
       fill: 'white',
       fontSize: '20px',
     });
-    this.level = this.add.text(20, this.scoreText.y + this.scoreText.height + 10, 'Level 4', {
+    this.coinText = this.add.text(20, this.scoreText.y + this.scoreText.height + 10, 'Coins: 0 / 10', {
       fill: 'white',
       fontSize: '20px',
     });
-    this.coinText = this.add.text(20, this.level.y + this.level.height + 10, 'Coins: 0', {
+    this.level = this.add.text(20, this.coinText.y + this.coinText.height + 10, 'Level 4', {
       fill: 'white',
       fontSize: '20px',
     });
@@ -117,11 +117,7 @@ class Scene4 extends Phaser.Scene {
       fontSize: '32px',
     });
   }
-  // resetLevel2() {
-  //   this.scene.restart(); // Memulai ulang scene level 2
-  //   this.isGameEnded = false;
-  //   this.monsterCount = 0;
-  // }
+
   update() {
     if (!this.isGameEnded) {
       this.timer--; // Mengurangi waktu
@@ -147,10 +143,10 @@ class Scene4 extends Phaser.Scene {
     if (!this.isGameEnded) {
       this.kitty.body.velocity.x = 0; // Reset velocity
       if (this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D).isDown || this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT).isDown) {
-        this.kitty.body.velocity.x = 100; // Move right
+        this.kitty.body.velocity.x = 500; // Move right
         this.turnKittyRight();
       } else if (this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A).isDown || this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT).isDown) {
-        this.kitty.body.velocity.x = -100; // Move left
+        this.kitty.body.velocity.x = -500; // Move left
         this.turnKittyLeft();
       }
     }
@@ -325,8 +321,8 @@ class Scene4 extends Phaser.Scene {
       this.monsterDead.destroy();
     });
     this.monsterCount++;
-    this.scoreText.setText('Monsters Killed: ' + this.monsterCount);
-    if (this.monsterCount >= 15 && !this.isGameEnded) {
+    this.scoreText.setText('Monsters Killed: ' + this.monsterCount + ' / 15');
+    if (this.monsterCount >= 15 && !this.isGameEnded && this.coinCount >= 10) {
       this.endGame();
       this.bgsound.stop();
     }
@@ -337,7 +333,11 @@ class Scene4 extends Phaser.Scene {
     this.getCoin.play();
     coin.destroy();
     this.coinCount++;
-    this.coinText.setText('Coins: ' + this.coinCount);
+    this.coinText.setText('Coins: ' + this.coinCount + ' / 10');
+    if (this.coinCount >= 10 && this.monsterCount >= 15 && !this.isGameEnded) {
+      this.endGame();
+      this.bgsound.stop();
+    }
   }
 
   hitTable(kitty, table) {

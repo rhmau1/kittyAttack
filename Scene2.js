@@ -39,7 +39,7 @@ class Scene2 extends Phaser.Scene {
     this.tables = this.physics.add.group();
     this.spawnTable();
 
-    this.scoreText = this.add.text(20, 20, 'Monsters Killed: 0', {
+    this.scoreText = this.add.text(20, 20, 'Monsters Killed: 0 / 10', {
       fill: 'white',
       fontSize: '20px',
     });
@@ -271,8 +271,8 @@ class Scene2 extends Phaser.Scene {
       this.monsterDead.destroy();
     });
     this.monsterCount++;
-    this.scoreText.setText('Monsters Killed: ' + this.monsterCount);
-    if (this.monsterCount >= 3 && !this.isGameEnded) {
+    this.scoreText.setText('Monsters Killed: ' + this.monsterCount + ' / 10');
+    if (this.monsterCount >= 10 && !this.isGameEnded) {
       this.endGame();
       this.bgsound.stop();
     }

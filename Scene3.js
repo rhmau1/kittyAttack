@@ -46,15 +46,15 @@ class Scene3 extends Phaser.Scene {
     this.coins = this.physics.add.group();
     this.spawnCoin();
 
-    this.scoreText = this.add.text(20, 20, 'Monsters Killed: 0', {
+    this.scoreText = this.add.text(20, 20, 'Monsters Killed: 0 / 15', {
       fill: 'white',
       fontSize: '20px',
     });
-    this.level = this.add.text(20, this.scoreText.y + this.scoreText.height + 10, 'Level 3', {
+    this.coinText = this.add.text(20, this.scoreText.y + this.scoreText.height + 10, 'Coins: 0', {
       fill: 'white',
       fontSize: '20px',
     });
-    this.coinText = this.add.text(20, this.level.y + this.level.height + 10, 'Coins: 0', {
+    this.level = this.add.text(20, this.coinText.y + this.coinText.height + 10, 'Level 3', {
       fill: 'white',
       fontSize: '20px',
     });
@@ -102,11 +102,7 @@ class Scene3 extends Phaser.Scene {
       fontSize: '32px',
     });
   }
-  // resetLevel2() {
-  //   this.scene.restart(); // Memulai ulang scene level 2
-  //   this.isGameEnded = false;
-  //   this.monsterCount = 0;
-  // }
+
   update() {
     if (!this.isGameEnded) {
       this.physics.overlap(this.kitty, this.coins, this.hitCoin, null, this);
@@ -298,8 +294,8 @@ class Scene3 extends Phaser.Scene {
       this.monsterDead.destroy();
     });
     this.monsterCount++;
-    this.scoreText.setText('Monsters Killed: ' + this.monsterCount);
-    if (this.monsterCount >= 5 && !this.isGameEnded) {
+    this.scoreText.setText('Monsters Killed: ' + this.monsterCount + ' / 15');
+    if (this.monsterCount >= 15 && !this.isGameEnded) {
       this.endGame();
       this.bgsound.stop();
     }

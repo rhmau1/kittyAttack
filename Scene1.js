@@ -35,7 +35,7 @@ class Scene1 extends Phaser.Scene {
     this.monsters = this.add.group();
     this.spawnMonster(); // Pertama kali munculkan monster
 
-    this.scoreText = this.add.text(20, 20, 'Monsters Killed: 0', {
+    this.scoreText = this.add.text(20, 20, 'Monsters Killed: 0 / 5', {
       fill: 'white',
       fontSize: '20px',
     });
@@ -214,8 +214,8 @@ class Scene1 extends Phaser.Scene {
       this.monsterDead.destroy();
     });
     this.monsterCount++;
-    this.scoreText.setText('Monsters Killed: ' + this.monsterCount);
-    if (this.monsterCount >= 2 && !this.isGameEnded) {
+    this.scoreText.setText('Monsters Killed: ' + this.monsterCount + ' / 5');
+    if (this.monsterCount >= 5 && !this.isGameEnded) {
       this.endGame();
     }
   }

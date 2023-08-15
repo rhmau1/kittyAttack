@@ -96,10 +96,10 @@ class Scene1 extends Phaser.Scene {
     if (!this.isGameEnded) {
       this.kitty.body.velocity.x = 0; // Reset velocity
       if (this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D).isDown || this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT).isDown) {
-        this.kitty.body.velocity.x = 100; // Move right
+        this.kitty.body.velocity.x = 300; // Move right
         this.turnKittyRight();
       } else if (this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A).isDown || this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT).isDown) {
-        this.kitty.body.velocity.x = -100; // Move left
+        this.kitty.body.velocity.x = -300; // Move left
         this.turnKittyLeft();
       }
     }
@@ -156,7 +156,7 @@ class Scene1 extends Phaser.Scene {
       this.balls.add(ball);
 
       // Set waktu timeout untuk mengatur ulang serangan kitty
-      this.time.delayedCall(500, () => {
+      this.time.delayedCall(1000, () => {
         this.kitty.attack = false;
       });
     }
@@ -164,18 +164,22 @@ class Scene1 extends Phaser.Scene {
 
   spawnMonster() {
     if (!this.isGameEnded) {
-      const monster = this.add.sprite(900, 500, 'monster').setDisplaySize(100, 100);
+      const randomX = Phaser.Math.Between(800, this.sys.game.config.width - 100); // Menghasilkan angka acak antara 800 dan lebar layar - 100
+
+      const monster = this.add.sprite(randomX, 500, 'monster').setDisplaySize(100, 100);
       this.physics.world.enable(monster);
 
-      this.anims.create({
-        key: 'monster_walk',
-        frames: this.anims.generateFrameNumbers('monster', {
-          start: 0,
-          end: 10,
-        }),
-        frameRate: 10,
-        repeat: -1,
-      });
+      if (!this.anims.get('monster_walk')) {
+        this.anims.create({
+          key: 'monster_walk',
+          frames: this.anims.generateFrameNumbers('monster', {
+            start: 0,
+            end: 10,
+          }),
+          frameRate: 10,
+          repeat: -1,
+        });
+      }
 
       monster.play('monster_walk');
 
@@ -183,7 +187,7 @@ class Scene1 extends Phaser.Scene {
       this.monsters.add(monster);
 
       // Set waktu timeout untuk memanggil kembali fungsi spawnMonster
-      this.time.delayedCall(3000, this.spawnMonster, [], this);
+      this.time.delayedCall(2000, this.spawnMonster, [], this);
     }
   }
 
@@ -199,18 +203,20 @@ class Scene1 extends Phaser.Scene {
   hitMonster(ball, monster) {
     ball.destroy();
     this.monsterDead = this.add.sprite(monster.x, monster.y, 'monsterDead').setDisplaySize(100, 100);
-    this.anims.create({
-      key: 'monster_dead',
-      frames: this.anims.generateFrameNumbers('monsterDead', {
-        start: 0,
-        end: 10,
-      }),
-      frameRate: 10,
-      repeat: 0,
-    });
+    if (!this.anims.get('monster_dead')) {
+      this.anims.create({
+        key: 'monster_dead',
+        frames: this.anims.generateFrameNumbers('monsterDead', {
+          start: 0,
+          end: 10,
+        }),
+        frameRate: 10,
+        repeat: 0,
+      });
+    }
     monster.play('monster_walk');
     monster.destroy();
-    this.time.delayedCall(2000, () => {
+    this.time.delayedCall(500, () => {
       this.monsterDead.destroy();
     });
     this.monsterCount++;

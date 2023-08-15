@@ -4,7 +4,7 @@ class Scene4 extends Phaser.Scene {
     this.monsterCount = 0; // Jumlah monster yang sudah dibunuh
     this.isGameEnded = false; // Apakah permainan sudah berakhir
     this.coinCount = 0;
-    this.timer = 15000; // Timer awal dalam detik
+    this.timer = 30; // Timer awal dalam detik
     this.timerLabel = null; // Label untuk menampilkan timer
   }
 
@@ -21,6 +21,8 @@ class Scene4 extends Phaser.Scene {
     this.isGameEnded = false;
     this.monsterCount = 0;
     this.coinCount = 0;
+    this.timer = 30; // Timer awal dalam detik
+
     this.background = this.add.image(0, 0, 'background').setDisplaySize(1290, 600);
     this.background.setOrigin(0, 0);
 
@@ -92,6 +94,7 @@ class Scene4 extends Phaser.Scene {
       // Tambahkan logika untuk lanjut ke level berikutnya
       this.scene.start('level5');
     });
+
     this.playAgainButton.setInteractive().on('pointerdown', () => {
       this.scene.restart(); // Memulai ulang permainan
       this.isGameEnded = false;
@@ -120,18 +123,6 @@ class Scene4 extends Phaser.Scene {
 
   update() {
     if (!this.isGameEnded) {
-      this.timer--; // Mengurangi waktu
-
-      if (this.timer == 0) {
-        // Waktu habis, panggil fungsi game over
-        this.gameOver();
-      } else {
-        // Update label timer
-        this.timerLabel.setText('Time: ' + this.timer);
-      }
-    }
-
-    if (!this.isGameEnded) {
       this.physics.overlap(this.kitty, this.coins, this.hitCoin, null, this);
       this.physics.overlap(this.kitty, this.tables, this.hitTable, null, this); // Cek tabrakan dengan meja
       this.physics.overlap(this.balls, this.monsters, this.hitMonster, null, this);
@@ -143,10 +134,10 @@ class Scene4 extends Phaser.Scene {
     if (!this.isGameEnded) {
       this.kitty.body.velocity.x = 0; // Reset velocity
       if (this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D).isDown || this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT).isDown) {
-        this.kitty.body.velocity.x = 500; // Move right
+        this.kitty.body.velocity.x = 300; // Move right
         this.turnKittyRight();
       } else if (this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A).isDown || this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT).isDown) {
-        this.kitty.body.velocity.x = -500; // Move left
+        this.kitty.body.velocity.x = -300; // Move left
         this.turnKittyLeft();
       }
     }
@@ -159,6 +150,19 @@ class Scene4 extends Phaser.Scene {
     }
   }
 
+  updateTimer() {
+    if (!this.isGameEnded) {
+      this.timer--; // Mengurangi waktu
+
+      if (this.timer == 0) {
+        // Waktu habis, panggil fungsi game over
+        this.gameOver();
+      } else {
+        // Update label timer
+        this.timerLabel.setText('Time: ' + this.timer);
+      }
+    }
+  }
   turnKittyLeft() {
     if (!this.isGameEnded) {
       this.kitty.flipX = true;
@@ -273,16 +277,17 @@ class Scene4 extends Phaser.Scene {
     if (!this.isGameEnded) {
       const monster = this.add.sprite(900, 500, 'monster').setDisplaySize(100, 100);
       this.physics.world.enable(monster);
-
-      this.anims.create({
-        key: 'monster_walk',
-        frames: this.anims.generateFrameNumbers('monster', {
-          start: 0,
-          end: 10,
-        }),
-        frameRate: 10,
-        repeat: -1,
-      });
+      if (!this.anims.get('monster_walk')) {
+        this.anims.create({
+          key: 'monster_walk',
+          frames: this.anims.generateFrameNumbers('monster', {
+            start: 0,
+            end: 10,
+          }),
+          frameRate: 10,
+          repeat: -1,
+        });
+      }
 
       monster.play('monster_walk');
 
@@ -290,7 +295,7 @@ class Scene4 extends Phaser.Scene {
       this.monsters.add(monster);
 
       // Set waktu timeout untuk memanggil kembali fungsi spawnMonster
-      this.time.delayedCall(3000, this.spawnMonster, [], this);
+      this.time.delayedCall(2000, this.spawnMonster, [], this);
     }
   }
 
@@ -306,23 +311,25 @@ class Scene4 extends Phaser.Scene {
   hitMonster(ball, monster) {
     ball.destroy();
     this.monsterDead = this.add.sprite(monster.x, monster.y, 'monsterDead').setDisplaySize(100, 100);
-    this.anims.create({
-      key: 'monster_dead',
-      frames: this.anims.generateFrameNumbers('monsterDead', {
-        start: 0,
-        end: 10,
-      }),
-      frameRate: 10,
-      repeat: 0,
-    });
+    if (!this.anims.get('monster_dead')) {
+      this.anims.create({
+        key: 'monster_dead',
+        frames: this.anims.generateFrameNumbers('monsterDead', {
+          start: 0,
+          end: 10,
+        }),
+        frameRate: 10,
+        repeat: 0,
+      });
+    }
     monster.play('monster_walk');
     monster.destroy();
     this.time.delayedCall(2000, () => {
       this.monsterDead.destroy();
     });
     this.monsterCount++;
-    this.scoreText.setText('Monsters Killed: ' + this.monsterCount + ' / 15');
-    if (this.monsterCount >= 15 && !this.isGameEnded && this.coinCount >= 10) {
+    this.scoreText.setText('Monsters Killed: ' + this.monsterCount + ' / 10');
+    if (this.monsterCount >= 10 && !this.isGameEnded && this.coinCount >= 10) {
       this.endGame();
       this.bgsound.stop();
     }
@@ -334,7 +341,7 @@ class Scene4 extends Phaser.Scene {
     coin.destroy();
     this.coinCount++;
     this.coinText.setText('Coins: ' + this.coinCount + ' / 10');
-    if (this.coinCount >= 10 && this.monsterCount >= 15 && !this.isGameEnded) {
+    if (this.coinCount >= 10 && this.monsterCount >= 10 && !this.isGameEnded) {
       this.endGame();
       this.bgsound.stop();
     }

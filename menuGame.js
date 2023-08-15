@@ -89,8 +89,8 @@ class menuGame extends Phaser.Scene {
       })
       .setOrigin(0.5);
 
-    const level5Button = this.add
-      .text(centerX, 390, 'Level 5', {
+    const instruksiButton = this.add
+      .text(centerX, 390, 'Instruction', {
         fontSize: '24px',
         fill: 'white',
         backgroundColor: '#333',
@@ -100,6 +100,31 @@ class menuGame extends Phaser.Scene {
         },
       })
       .setOrigin(0.5);
+
+    // const bonusButton = this.add
+    //   .text(this.sys.game.config.width - 70, this.sys.game.config.height - 70, 'Bonus', {
+    //     fontSize: '24px',
+    //     fill: 'white',
+    //     backgroundColor: '#333',
+    //     padding: {
+    //       x: 10,
+    //       y: 5,
+    //     },
+    //   })
+    //   .setOrigin(1)
+    //   .setInteractive();
+
+    // const level5Button = this.add
+    //   .text(centerX, 390, 'Level 5', {
+    //     fontSize: '24px',
+    //     fill: 'white',
+    //     backgroundColor: '#333',
+    //     padding: {
+    //       x: 10,
+    //       y: 5,
+    //     },
+    //   })
+    //   .setOrigin(0.5);
 
     level1Button.setInteractive().on('pointerdown', () => {
       this.scene.start('level1');
@@ -115,8 +140,11 @@ class menuGame extends Phaser.Scene {
     level4Button.setInteractive().on('pointerdown', () => {
       this.scene.start('level4');
     });
-    level5Button.setInteractive().on('pointerdown', () => {
-      this.scene.start('level5');
+    instruksiButton.setInteractive().on('pointerdown', () => {
+      this.scene.start('Instructions');
     });
+    // level5Button.setInteractive().on('pointerdown', () => {
+    //   this.scene.start('level5');
+    // });
   }
 }

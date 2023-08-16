@@ -6,14 +6,6 @@ class menuGame extends Phaser.Scene {
   preload() {
     this.load.image('background', 'assets/images/background.jpeg');
     this.load.image('kitty', 'assets/images/kitty2.png');
-    this.load.spritesheet('monster', 'assets/monster/MonsterWalk.png', {
-      frameWidth: 45.4,
-      frameHeight: 68,
-    });
-    this.load.spritesheet('monsterDead', 'assets/monster/MonsterDead.png', {
-      frameWidth: 45.4,
-      frameHeight: 68,
-    });
   }
 
   create() {

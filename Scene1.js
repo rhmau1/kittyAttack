@@ -3,17 +3,29 @@ class Scene1 extends Phaser.Scene {
     super('level1');
     this.monsterCount = 0; // Jumlah monster yang sudah dibunuh
     this.isGameEnded = false; // Apakah permainan sudah berakhir
+    this.score = 0;
   }
 
   preload() {
-    this.isGameEnded = false;
-    this.monsterCount = 0;
+    this.load.image('background', 'assets/images/background.jpeg');
+    this.load.image('kitty', 'assets/images/kitty2.png');
+    this.load.spritesheet('monster', 'assets/monster/MonsterWalk.png', {
+      frameWidth: 45.4,
+      frameHeight: 68,
+    });
+    this.load.spritesheet('monsterDead', 'assets/monster/MonsterDead.png', {
+      frameWidth: 45.4,
+      frameHeight: 68,
+    });
     this.load.image('kittyTabrak', 'assets/images/kittyTabrak.png');
     this.load.audio('bgsound', 'assets/sound/bgSound.mp3');
     this.load.audio('gameover', 'assets/sound/gameOver.mp3');
     this.load.audio('win', 'assets/sound/win.mp3');
   }
   create() {
+    this.isGameEnded = false;
+    this.monsterCount = 0;
+    this.score = 0;
     this.background = this.add.image(0, 0, 'background').setDisplaySize(1290, 600);
     this.background.setOrigin(0, 0);
 
@@ -35,11 +47,15 @@ class Scene1 extends Phaser.Scene {
     this.monsters = this.add.group();
     this.spawnMonster(); // Pertama kali munculkan monster
 
-    this.scoreText = this.add.text(20, 20, 'Monsters Killed: 0 / 5', {
+    this.scoreText = this.add.text(20, 20, 'Score: 0', {
       fill: 'white',
       fontSize: '20px',
     });
-    this.level = this.add.text(20, this.scoreText.y + this.scoreText.height + 10, 'Level 1', {
+    this.killText = this.add.text(20, this.scoreText.y + this.scoreText.height + 10, 'Monsters Killed: 0 / 5', {
+      fill: 'white',
+      fontSize: '20px',
+    });
+    this.level = this.add.text(20, this.killText.y + this.killText.height + 10, 'Level 1', {
       fill: 'white',
       fontSize: '20px',
     });
@@ -94,13 +110,22 @@ class Scene1 extends Phaser.Scene {
     }
 
     if (!this.isGameEnded) {
-      this.kitty.body.velocity.x = 0; // Reset velocity
       if (this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D).isDown || this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT).isDown) {
-        this.kitty.body.velocity.x = 300; // Move right
-        this.turnKittyRight();
+        if (this.kitty.x < this.sys.game.config.width - 50) {
+          this.kitty.body.velocity.x = 300; // Move right
+          this.turnKittyRight();
+        } else {
+          this.kitty.body.velocity.x = 0; // Stop moving at the right boundary
+        }
       } else if (this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A).isDown || this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT).isDown) {
-        this.kitty.body.velocity.x = -300; // Move left
-        this.turnKittyLeft();
+        if (this.kitty.x > 50) {
+          this.kitty.body.velocity.x = -300; // Move left
+          this.turnKittyLeft();
+        } else {
+          this.kitty.body.velocity.x = 0; // Stop moving at the left boundary
+        }
+      } else {
+        this.kitty.body.velocity.x = 0; // Stop moving when no keys are pressed
       }
     }
 
@@ -220,7 +245,9 @@ class Scene1 extends Phaser.Scene {
       this.monsterDead.destroy();
     });
     this.monsterCount++;
-    this.scoreText.setText('Monsters Killed: ' + this.monsterCount + ' / 5');
+    this.killText.setText('Monsters Killed: ' + this.monsterCount + ' / 5');
+    this.score += 10;
+    this.scoreText.setText('Score: ' + this.score);
     if (this.monsterCount >= 5 && !this.isGameEnded) {
       this.endGame();
     }

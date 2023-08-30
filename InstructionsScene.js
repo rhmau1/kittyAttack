@@ -27,7 +27,7 @@ class InstructionsScene extends Phaser.Scene {
         'Kontrol:\n' +
         'A/D atau Left/Right untuk bergerak\n' +
         'W atau Up untuk melompat\n' +
-        'Spasi untuk serangan\n\n' +
+        'ENTER untuk serangan\n\n' +
         'Ingat:\n' +
         'Jangan sampai kitty menabrak meja atau monster agar tidak mati.\n\n' +
         '[Tekan Enter untuk memulai level 1]',

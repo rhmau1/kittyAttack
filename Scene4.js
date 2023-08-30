@@ -58,7 +58,7 @@ class Scene4 extends Phaser.Scene {
 
     this.physics.world.enable(this.kitty); // Hanya aktifkan fisika untuk kitty
 
-    this.input.keyboard.on('keydown-SPACE', this.kittyAttack, this);
+    this.input.keyboard.on('keydown-ENTER', this.kittyAttack, this);
     this.kitty.attack = false;
     this.input.keyboard.on('keydown-W', this.kittyJump, this);
     this.input.keyboard.on('keydown-UP', this.kittyJump, this);
